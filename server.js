@@ -1,10 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const app = express();
 const mongoose = require('mongoose');
 const passport = require('passport');
-
 require('dotenv').config();
 
 mongoose.Promise = global.Promise;
@@ -12,18 +12,26 @@ mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('MongoDB connect'))
 .catch(err => console.log(err))
 
-//Passport middleware
-app.use(passport.initialize());
-
-// Passport config
-require('./config/passport');
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use(express.static('client/build'))
+
+app.use(
+    cookieSession({
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        keys: [process.env.cookieKey]
+    })
+)
+
+//Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport config
+require('./config/passport');
 
 require('./routes/userRoute')(app);
 

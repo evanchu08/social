@@ -71,7 +71,7 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FBClientID,
     clientSecret: process.env.FBClientSecret,
     profileFields: ['email', 'displayName'],
-    callbackURL: 'http://localhost:5000/auth/facebook/callback',
+    callbackURL: '/auth/facebook/callback',
     passReqToCallback: true
     }, (req, token, refreshToken, profile, done) => {       
     User.findOne({'email':profile._json.email}, (err, user) => {
@@ -100,8 +100,19 @@ passport.use(new FacebookStrategy({
                         return done(err);                           
                         return done(null, user);
                 });
+            } else {
+                if (user.facebook.token != token){
+                    user.facebook.token = token;
+                    user.fullname = profile.displayName;
+                    user.save(function(err) {
+                        if (err)
+                            return done(err);                           
+                        return done(null, user);
+                    });
+                } else {
+                    return done(null, user);    
+                }
             }
-            return done(null, user);
         }       
     })
 }))
@@ -109,7 +120,7 @@ passport.use(new FacebookStrategy({
 passport.use(new GoogleStrategy({
     clientID        : process.env.googleClientID,
     clientSecret    : process.env.googleClientSecret,
-    callbackURL     : 'http://localhost:5000/auth/google/callback',
+    callbackURL     : '/auth/google/callback',
     passReqToCallback : true // allows us to pass in the req from our route (lets us check if a user is logged in or not)
     }, (req, token, refreshToken, profile, done) => {
         User.findOne({'email':profile.emails[0].value}, (err, user) => {
@@ -137,8 +148,19 @@ passport.use(new GoogleStrategy({
                             return done(err);                           
                             return done(null, user);
                     });
-                }           
-                return done(null, user);
+                } else {
+                    if (user.google.token != token){
+                        user.google.token = token;
+                        user.fullname  = profile.displayName;
+                        user.save(function(err) {
+                            if (err)
+                                return done(err);                           
+                            return done(null, user);
+                        })
+                    } else {
+                        return done(null, user);
+                    }
+                }                
             }            
         })
     }))
