@@ -5,8 +5,6 @@ const passport = require('passport');
 
 var crypto = require('crypto');
 var User = require('../models/user');
-var secret = require('../secret/secret');
-
 
 module.exports = (app) => {
 
